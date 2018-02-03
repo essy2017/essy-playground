@@ -10,10 +10,11 @@ module.exports = [
     },
 
     entry: {
-      snowflakes: path.join(__dirname, '/src/snowflakes.js')
+      clock      : path.join(__dirname, '/src/clock.js'),
+      snowflakes : path.join(__dirname, '/src/snowflakes.js')
     },
     output: {
-      path: __dirname,
+      path: path.join(__dirname, '/build/'),
       filename: 'bundle-[name].js'
     },
 
