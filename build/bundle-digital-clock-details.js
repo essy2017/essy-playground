@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 464);
+/******/ 	return __webpack_require__(__webpack_require__.s = 466);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -28916,7 +28916,9 @@ function nopropagation() {
 }
 
 /***/ }),
-/* 464 */
+/* 464 */,
+/* 465 */,
+/* 466 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28924,130 +28926,190 @@ function nopropagation() {
 
 var _d = __webpack_require__(172);
 
-var size = 300;
-var margin = 20;
-var innerSize = size - 2 * margin;
-var radiusOuter = innerSize / 2;
-var radiusInner = 0.97 * radiusOuter;
-var radiusTicks = 0.95 * radiusInner;
-var radiusNumbers = 0.85 * radiusTicks;
-var radiusHands = 0.85 * radiusNumbers;
-var scale = (0, _d.scaleLinear)().domain([0, 11]).range([0, 11 / 6 * Math.PI]);
-var radians = (0, _d.scaleLinear)().domain([0, 1]).range([-0.5 * Math.PI, 1.5 * Math.PI]);
+var DIGIT_WIDTH = 160;
+var DIGIT_PADDING = 0.15 * DIGIT_WIDTH;
+var BAR_HEIGHT = 0.2 * (DIGIT_WIDTH - 2 * DIGIT_PADDING);
+var BAR_SPACE = 0.1 * BAR_HEIGHT;
+var BAR_WIDTH = DIGIT_WIDTH - 2 * DIGIT_PADDING - BAR_HEIGHT;
+var DIGIT_HEIGHT = 2 * DIGIT_PADDING + 2 * BAR_WIDTH + BAR_HEIGHT + 4 * BAR_SPACE;
+var DOT_WIDTH = 2 * DIGIT_PADDING + BAR_HEIGHT;
+var DOT_SPACE = (DIGIT_HEIGHT - 2 * DIGIT_PADDING - 2 * BAR_HEIGHT) / 3;
+var PADDING = 100;
+var PADDING_H = 150;
+var PADDING_V = 100;
+var LINE_EXTEND = 20;
+var COLOR_ON = '#eee';
+var COLOR_OFF = '#bbb';
 
-// Main element.
-var svg = (0, _d.select)('body').append('svg').attr('width', size).attr('height', size).append('g').attr('transform', 'translate(' + margin + ',' + margin + ')');
+var DASH_ARRAY = '2,1';
+var LINE_COLOR = '#555';
+var FONT_SIZE = '10px';
+var FONT_FAMILY = 'Helvetica,arial,sans-serif';
 
-// Create the frame.
-var frame = svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')');
-frame.append('circle').attr('cx', 0).attr('cy', 0).attr('r', radiusOuter).attr('fill', '#000');
-frame.append('circle').attr('cx', 0).attr('cy', 0).attr('r', radiusInner).attr('fill', '#f1f7fd');
+// Path string for bars.
+var barPath = function () {
+  var p = (0, _d.path)();
+  p.moveTo(0, BAR_HEIGHT / 2);
+  p.lineTo(BAR_HEIGHT / 2, 0);
+  p.lineTo(BAR_WIDTH - BAR_HEIGHT / 2, 0);
+  p.lineTo(BAR_WIDTH, BAR_HEIGHT / 2);
+  p.lineTo(BAR_WIDTH - BAR_HEIGHT / 2, BAR_HEIGHT);
+  p.lineTo(BAR_HEIGHT / 2, BAR_HEIGHT);
+  p.closePath();
+  return p.toString();
+}();
 
-// Create numbers.
-svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')').selectAll('.number').data((0, _d.range)(12)).enter().append('text').attr('class', 'number').style('font-size', '18px').attr('text-anchor', 'middle').attr('dy', '0.3em').attr('x', function (d, i) {
-  return radiusNumbers * Math.cos(scale(i) - Math.PI / 2);
-}).attr('y', function (d, i) {
-  return radiusNumbers * Math.sin(scale(i) - Math.PI / 2);
-}).text(function (d) {
-  return d === 0 ? 12 : d;
+// Returns data for bars within digit, passed numerical value.
+function barData(v) {
+  return [{ // top
+    x: BAR_HEIGHT / 2,
+    y: 0,
+    rot: 0,
+    on: [0, 2, 3, 5, 6, 7, 8, 9].indexOf(v) > -1
+  }, { // top left
+    x: BAR_HEIGHT - BAR_SPACE,
+    y: BAR_HEIGHT / 2 + BAR_SPACE,
+    rot: 90,
+    on: [0, 4, 5, 6, 8, 9].indexOf(v) > -1
+  }, { // top right
+    x: BAR_WIDTH + BAR_HEIGHT + BAR_SPACE,
+    y: BAR_HEIGHT / 2 + BAR_SPACE,
+    rot: 90,
+    on: [0, 1, 2, 3, 4, 7, 8, 9].indexOf(v) > -1
+  }, { // middle
+    x: BAR_HEIGHT / 2,
+    y: BAR_WIDTH + 2 * BAR_SPACE,
+    rot: 0,
+    on: [2, 3, 4, 5, 6, 8, 9].indexOf(v) > -1
+  }, { // bottom left
+    x: BAR_HEIGHT - BAR_SPACE,
+    y: BAR_WIDTH + BAR_HEIGHT / 2 + 3 * BAR_SPACE,
+    rot: 90,
+    on: [0, 2, 6, 8].indexOf(v) > -1
+  }, { // bottom right
+    x: BAR_WIDTH + BAR_HEIGHT + BAR_SPACE,
+    y: BAR_WIDTH + BAR_HEIGHT / 2 + 3 * BAR_SPACE,
+    rot: 90,
+    on: [0, 1, 3, 4, 5, 6, 7, 8, 9].indexOf(v) > -1
+  }, { // bottom
+    x: BAR_HEIGHT / 2,
+    y: 2 * BAR_WIDTH + 4 * BAR_SPACE,
+    rot: 0,
+    on: [0, 2, 3, 5, 6, 8, 9].indexOf(v) > -1
+  }];
+}
+
+// Create main element.
+var svg = (0, _d.select)('body').append('svg').attr('width', 2 * PADDING_H + DIGIT_WIDTH).attr('height', 2 * PADDING_V + DIGIT_HEIGHT).append('g');
+
+// Create background.
+svg.append('rect').attr('x', PADDING_H).attr('y', PADDING_V).attr('width', DIGIT_WIDTH).attr('height', DIGIT_HEIGHT).attr('fill', '#bbb');
+
+// Create clock.
+var clock = svg.append('g').attr('transform', 'translate(' + (PADDING_H + DIGIT_PADDING) + ',' + (PADDING_V + DIGIT_PADDING) + ')');
+
+// Create digits.
+var digits = clock.selectAll('.digit').data([3]).enter().append('g').attr('class', 'digit').attr('transform', function (d, i) {
+  return 'translate(' + (i * DIGIT_WIDTH + Math.floor(i / 2) * DOT_WIDTH) + ',0)';
 });
 
-// Create tick marks.
-svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')').selectAll('.tick').data((0, _d.range)(60)).enter().append('line').attr('class', 'tick').attr('stroke-width', function (d) {
-  return d % 5 === 0 ? 2 : 1;
-}).attr('stroke', '#000').attr('x1', function (d) {
-  return (d % 5 === 0 ? radiusTicks - 3 : radiusTicks) * Math.cos(2 * Math.PI * (d / 60));
-}).attr('y1', function (d) {
-  return (d % 5 === 0 ? radiusTicks - 3 : radiusTicks) * Math.sin(2 * Math.PI * (d / 60));
-}).attr('x2', function (d) {
-  return radiusInner * Math.cos(2 * Math.PI * (d / 60));
-}).attr('y2', function (d) {
-  return radiusInner * Math.sin(2 * Math.PI * (d / 60));
+// Create bars for each digit.
+digits.selectAll('.bar').data(function (d) {
+  return barData(d);
+}).enter().append('path').attr('class', 'bar').attr('d', barPath).attr('fill', function (d) {
+  return d.on ? COLOR_ON : COLOR_OFF;
+}).attr('transform', function (d) {
+  return 'translate(' + d.x + ',' + d.y + ') rotate(' + d.rot + ')';
 });
 
-/**
- * Makes circle for hand.
- * @method makeHandCircle
- * @param fill {String} Fill color.
- * @param radius {Number} Circle radius.
- * @return {d3.selection}
- */
-function makeHandCircle(fill, radius) {
-  return hands.append('circle').attr('cx', 0).attr('cy', 0).attr('r', radius).attr('fill', fill);
-}
+var defs = svg.append('defs');
 
-/**
- * Makes line for hand.
- * @method makeHandLine
- * @param stroke {String} Stroke color for line.
- * @param strokeWidth {Number} Stroke width for line.
- * @return {d3.selection}
- */
-function makeHandLine(stroke, strokeWidth) {
-  return hands.append('line').attr('stroke-width', strokeWidth).attr('stroke', stroke).attr('x1', 0).attr('y1', 0);
-}
+defs.append('marker').attr('id', 'arrow-right').attr('markerWidth', 6).attr('markerHeight', 6).attr('refX', 9).attr('refY', 5).attr('viewBox', '0 0 10 10').append('path').attr('d', 'M0,0 L10,5 L0,10Z').attr('fill', LINE_COLOR);
 
-var hands = svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')');
+defs.append('marker').attr('id', 'arrow-left').attr('markerWidth', 8).attr('markerHeight', 6).attr('refX', 0).attr('refY', 5).attr('viewBox', '0 0 10 10').append('path').attr('d', 'M0,5 L10,0 L10,10Z').attr('fill', LINE_COLOR);
 
-var hPath = (0, _d.path)();
-hPath.moveTo(-0.3 * radiusHands, -2);
-hPath.lineTo(0.6 * radiusHands - 2, -2);
-hPath.lineTo(0.6 * radiusHands, 0);
-hPath.lineTo(0.6 * radiusHands - 2, 2);
-hPath.lineTo(-0.3 * radiusHands, 2);
-hPath.closePath();
+defs.append('marker').attr('id', 'arrow-up').attr('markerWidth', 6).attr('markerHeight', 8).attr('refX', 5).attr('refY', 0).attr('viewBox', '0 0 10 10').append('path').attr('d', 'M0,10 L5,0 L10,10Z').attr('fill', LINE_COLOR);
 
-var hours = hands.append('path').attr('fill', '#000').attr('d', hPath.toString());
+defs.append('marker').attr('id', 'arrow-down').attr('markerWidth', 6).attr('markerHeight', 8).attr('refX', 5).attr('refY', 9).attr('viewBox', '0 0 10 10').append('path').attr('d', 'M0,0 L5,10 L10,0Z').attr('fill', LINE_COLOR);
 
-var mPath = (0, _d.path)();
-mPath.moveTo(-0.3 * radiusHands, -2);
-mPath.lineTo(radiusHands - 2, -2);
-mPath.lineTo(radiusHands, 0);
-mPath.lineTo(radiusHands - 2, 2);
-mPath.lineTo(-0.3 * radiusHands, 2);
-mPath.closePath();
-var minutes = hands.append('path').attr('fill', '#000').attr('d', mPath.toString());
+// BAR_WIDTH.
+var bw = svg.append('g').attr('transform', 'translate(' + (PADDING_H + DIGIT_PADDING + BAR_HEIGHT / 2) + ',' + (PADDING_V - LINE_EXTEND) + ')');
 
-var circleSeconds = makeHandCircle('#b44', radiusInner / 30);
-var sPath = (0, _d.path)();
-sPath.moveTo(-0.3 * radiusHands, -2);
-sPath.lineTo(0, -2);
-sPath.lineTo(0, -1);
-sPath.lineTo(radiusHands, -1);
-sPath.lineTo(radiusHands, 1);
-sPath.lineTo(0, 1);
-sPath.lineTo(0, 2);
-sPath.lineTo(-0.3 * radiusHands, 2);
-sPath.closePath();
-var seconds = hands.append('path').attr('d', sPath.toString()).attr('fill', '#b44');
-makeHandCircle('#000', radiusInner / 50);
+bw.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', LINE_EXTEND + DIGIT_PADDING + BAR_HEIGHT / 2);
 
-/**
- * Updates hand positions.
- * @method update
- */
-function update() {
+bw.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', BAR_WIDTH).attr('y1', 0).attr('x2', BAR_WIDTH).attr('y2', LINE_EXTEND + DIGIT_PADDING + BAR_HEIGHT / 2);
 
-  var d = new Date();
-  var h = d.getHours() % 12;
-  var m = d.getMinutes();
-  var s = d.getSeconds();
-  var t = (0, _d.transition)().duration(100);
+bw.append('line').attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', 0).attr('x2', 12).attr('y2', 0).attr('marker-start', 'url(#arrow-left)');
 
-  hours.datum(360 * ((d.getHours() % 12 + m / 60) / 12) - 90).transition(t).attr('transform', function (d) {
-    return 'rotate(' + d + ')';
-  });
+bw.append('line').attr('stroke', LINE_COLOR).attr('x1', BAR_WIDTH - 12).attr('y1', 0).attr('x2', BAR_WIDTH).attr('y2', 0).attr('marker-end', 'url(#arrow-right)');
 
-  minutes.datum(360 * ((m + s / 60) / 60) - 90).transition(t).attr('transform', function (d) {
-    return 'rotate(' + d + ')';
-  });
+bw.append('text').attr('text-anchor', 'middle').attr('x', BAR_WIDTH / 2).attr('y', 0).attr('dy', '0.3em').style('font-family', FONT_FAMILY).style('font-size', FONT_SIZE).text('BAR_WIDTH');
 
-  seconds.datum(360 * ((s + d.getMilliseconds() / 1000) / 60) - 90).transition(t).attr('transform', function (d) {
-    return 'rotate(' + d + ')';
-  });
-}
+// BAR_HEIGHT.
+var bh = svg.append('g').attr('transform', 'translate(' + (PADDING_H - LINE_EXTEND) + ',' + (PADDING_V + DIGIT_PADDING + BAR_WIDTH + 2 * BAR_SPACE) + ')');
 
-window.setInterval(update, 100);
+bh.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', 0).attr('x2', LINE_EXTEND + DIGIT_PADDING + BAR_HEIGHT).attr('y2', 0);
+
+bh.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', BAR_HEIGHT).attr('x2', LINE_EXTEND + DIGIT_PADDING + BAR_HEIGHT).attr('y2', BAR_HEIGHT);
+
+bh.append('line').attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', BAR_HEIGHT).attr('marker-start', 'url(#arrow-up)').attr('marker-end', 'url(#arrow-down)');
+
+bh.append('text').attr('text-anchor', 'end').attr('x', 0).attr('y', BAR_HEIGHT / 2).attr('dx', '-1em').attr('dy', '0.3em').attr('font-size', FONT_SIZE).attr('font-family', FONT_FAMILY).text('BAR_HEIGHT');
+
+// DIGIT_WIDTH
+var dw = svg.append('g').attr('transform', 'translate(' + PADDING_H + ',' + (PADDING_V + DIGIT_HEIGHT) + ')');
+
+dw.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', 1).attr('y1', 0).attr('x2', 1).attr('y2', LINE_EXTEND);
+
+dw.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', DIGIT_WIDTH - 1).attr('y1', 0).attr('x2', DIGIT_WIDTH - 1).attr('y2', LINE_EXTEND);
+
+dw.append('line').attr('stroke', LINE_COLOR).attr('x1', 1).attr('y1', LINE_EXTEND).attr('x2', 42).attr('y2', LINE_EXTEND).attr('marker-start', 'url(#arrow-left)');
+
+dw.append('line').attr('stroke', LINE_COLOR).attr('x1', DIGIT_WIDTH - 42).attr('y1', LINE_EXTEND).attr('x2', DIGIT_WIDTH - 1).attr('y2', LINE_EXTEND).attr('marker-end', 'url(#arrow-right)');
+
+dw.append('text').attr('text-anchor', 'middle').attr('x', DIGIT_WIDTH / 2).attr('y', LINE_EXTEND).attr('dy', '0.3em').style('font-family', FONT_FAMILY).style('font-size', FONT_SIZE).text('DIGIT_WIDTH');
+
+// DIGIT_HEIGHT.
+var dh = svg.append('g').attr('transform', 'translate(' + (PADDING_H + DIGIT_WIDTH) + ',' + PADDING_V + ')');
+
+dh.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', 1).attr('x2', LINE_EXTEND).attr('y2', 1);
+
+dh.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', DIGIT_HEIGHT - 1).attr('x2', LINE_EXTEND).attr('y2', DIGIT_HEIGHT - 1);
+
+dh.append('text').attr('text-anchor', 'start').attr('font-size', FONT_SIZE).attr('font-family', FONT_FAMILY).attr('x', LINE_EXTEND / 2).attr('y', DIGIT_HEIGHT / 2).attr('dy', '0.3em').text('DIGIT_HEIGHT');
+
+dh.append('line').attr('stroke', LINE_COLOR).attr('x1', LINE_EXTEND).attr('y1', 0).attr('x2', LINE_EXTEND).attr('y2', DIGIT_HEIGHT / 2 - 10).attr('marker-start', 'url(#arrow-up)');
+
+dh.append('line').attr('stroke', LINE_COLOR).attr('x1', LINE_EXTEND).attr('y1', DIGIT_HEIGHT / 2 + 10).attr('x2', LINE_EXTEND).attr('y2', DIGIT_HEIGHT).attr('marker-end', 'url(#arrow-down)');
+
+// DIGIT_PADDING
+var dp = svg.append('g').attr('transform', 'translate(' + (PADDING_H - LINE_EXTEND) + ',' + (PADDING_V + DIGIT_HEIGHT - DIGIT_PADDING) + ')');
+
+dp.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', 0).attr('x2', LINE_EXTEND + DIGIT_PADDING + BAR_HEIGHT).attr('y2', 0);
+
+dp.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', DIGIT_PADDING - 1).attr('x2', LINE_EXTEND).attr('y2', DIGIT_PADDING - 1);
+
+dp.append('text').attr('text-anchor', 'end').attr('font-size', FONT_SIZE).attr('font-family', FONT_FAMILY).attr('x', 0).attr('y', DIGIT_PADDING / 2).attr('dx', '-1em').attr('dy', '0.3em').text('DIGIT_PADDING');
+
+dp.append('line').attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', DIGIT_PADDING - 1).attr('marker-start', 'url(#arrow-up)').attr('marker-end', 'url(#arrow-down)');
+
+// DIGIT_PADDING vertical.
+var dp2 = svg.append('g').attr('transform', 'translate(' + (PADDING_H + DIGIT_WIDTH - DIGIT_PADDING + BAR_SPACE) + ',' + (PADDING_V - 2 * LINE_EXTEND) + ')');
+
+dp2.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 2 * LINE_EXTEND + DIGIT_PADDING + BAR_HEIGHT);
+
+dp2.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', DIGIT_PADDING - 3).attr('y1', 0).attr('x2', DIGIT_PADDING - 3).attr('y2', 2 * LINE_EXTEND);
+
+dp2.append('text').attr('text-anchor', 'middle').attr('font-size', FONT_SIZE).attr('font-family', FONT_FAMILY).attr('x', (DIGIT_PADDING - 3) / 2).attr('y', 0).attr('dy', '-1em').text('DIGIT_PADDING');
+
+dp2.append('line').attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', 0).attr('x2', DIGIT_PADDING - 3).attr('y2', 0).attr('marker-start', 'url(#arrow-left)').attr('marker-end', 'url(#arrow-right)');
+
+// BAR_SPACE
+var bs = svg.append('g').attr('transform', 'translate(' + (PADDING_H - LINE_EXTEND) + ',' + (PADDING_V + DIGIT_PADDING + (BAR_HEIGHT + BAR_WIDTH) / 2) + ')');
+
+bs.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', 0).attr('y1', 0).attr('x2', LINE_EXTEND + DIGIT_PADDING + (BAR_HEIGHT + BAR_WIDTH) / 2 + BAR_SPACE).attr('y2', 0);
+bs.append('line').attr('stroke-dasharray', DASH_ARRAY).attr('stroke', LINE_COLOR).attr('x1', LINE_EXTEND + DIGIT_PADDING + (BAR_HEIGHT + BAR_WIDTH) / 2 + BAR_SPACE).attr('y1', 0).attr('x2', LINE_EXTEND + DIGIT_WIDTH - DIGIT_PADDING - BAR_HEIGHT + BAR_SPACE).attr('y2', -BAR_WIDTH / 2 + BAR_HEIGHT / 2);
+bs.append('text').attr('text-anchor', 'end').attr('font-size', FONT_SIZE).attr('font-family', FONT_FAMILY).attr('x', 0).attr('y', 0).attr('dx', '-1em').attr('dy', '0.3em').text('BAR_SPACE');
 
 /***/ })
 /******/ ]);

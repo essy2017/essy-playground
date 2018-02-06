@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 464);
+/******/ 	return __webpack_require__(__webpack_require__.s = 465);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -28916,7 +28916,8 @@ function nopropagation() {
 }
 
 /***/ }),
-/* 464 */
+/* 464 */,
+/* 465 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28924,130 +28925,118 @@ function nopropagation() {
 
 var _d = __webpack_require__(172);
 
-var size = 300;
-var margin = 20;
-var innerSize = size - 2 * margin;
-var radiusOuter = innerSize / 2;
-var radiusInner = 0.97 * radiusOuter;
-var radiusTicks = 0.95 * radiusInner;
-var radiusNumbers = 0.85 * radiusTicks;
-var radiusHands = 0.85 * radiusNumbers;
-var scale = (0, _d.scaleLinear)().domain([0, 11]).range([0, 11 / 6 * Math.PI]);
-var radians = (0, _d.scaleLinear)().domain([0, 1]).range([-0.5 * Math.PI, 1.5 * Math.PI]);
+var DIGIT_WIDTH = 70;
+var DIGIT_PADDING = 0.15 * DIGIT_WIDTH;
+var BAR_HEIGHT = 0.2 * (DIGIT_WIDTH - 2 * DIGIT_PADDING);
+var BAR_SPACE = 0.1 * BAR_HEIGHT;
+var BAR_WIDTH = DIGIT_WIDTH - 2 * DIGIT_PADDING - BAR_HEIGHT;
+var DIGIT_HEIGHT = 2 * DIGIT_PADDING + 2 * BAR_WIDTH + BAR_HEIGHT + 4 * BAR_SPACE;
+var DOT_WIDTH = 2 * DIGIT_PADDING + BAR_HEIGHT;
+var DOT_SPACE = (DIGIT_HEIGHT - 2 * DIGIT_PADDING - 2 * BAR_HEIGHT) / 3;
+var COLOR_ON = '#70fbfd';
+var COLOR_OFF = '#181917';
 
-// Main element.
-var svg = (0, _d.select)('body').append('svg').attr('width', size).attr('height', size).append('g').attr('transform', 'translate(' + margin + ',' + margin + ')');
+// Path string for bars.
+var barPath = function () {
+  var p = (0, _d.path)();
+  p.moveTo(0, BAR_HEIGHT / 2);
+  p.lineTo(BAR_HEIGHT / 2, 0);
+  p.lineTo(BAR_WIDTH - BAR_HEIGHT / 2, 0);
+  p.lineTo(BAR_WIDTH, BAR_HEIGHT / 2);
+  p.lineTo(BAR_WIDTH - BAR_HEIGHT / 2, BAR_HEIGHT);
+  p.lineTo(BAR_HEIGHT / 2, BAR_HEIGHT);
+  p.closePath();
+  return p.toString();
+}();
 
-// Create the frame.
-var frame = svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')');
-frame.append('circle').attr('cx', 0).attr('cy', 0).attr('r', radiusOuter).attr('fill', '#000');
-frame.append('circle').attr('cx', 0).attr('cy', 0).attr('r', radiusInner).attr('fill', '#f1f7fd');
-
-// Create numbers.
-svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')').selectAll('.number').data((0, _d.range)(12)).enter().append('text').attr('class', 'number').style('font-size', '18px').attr('text-anchor', 'middle').attr('dy', '0.3em').attr('x', function (d, i) {
-  return radiusNumbers * Math.cos(scale(i) - Math.PI / 2);
-}).attr('y', function (d, i) {
-  return radiusNumbers * Math.sin(scale(i) - Math.PI / 2);
-}).text(function (d) {
-  return d === 0 ? 12 : d;
-});
-
-// Create tick marks.
-svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')').selectAll('.tick').data((0, _d.range)(60)).enter().append('line').attr('class', 'tick').attr('stroke-width', function (d) {
-  return d % 5 === 0 ? 2 : 1;
-}).attr('stroke', '#000').attr('x1', function (d) {
-  return (d % 5 === 0 ? radiusTicks - 3 : radiusTicks) * Math.cos(2 * Math.PI * (d / 60));
-}).attr('y1', function (d) {
-  return (d % 5 === 0 ? radiusTicks - 3 : radiusTicks) * Math.sin(2 * Math.PI * (d / 60));
-}).attr('x2', function (d) {
-  return radiusInner * Math.cos(2 * Math.PI * (d / 60));
-}).attr('y2', function (d) {
-  return radiusInner * Math.sin(2 * Math.PI * (d / 60));
-});
-
-/**
- * Makes circle for hand.
- * @method makeHandCircle
- * @param fill {String} Fill color.
- * @param radius {Number} Circle radius.
- * @return {d3.selection}
- */
-function makeHandCircle(fill, radius) {
-  return hands.append('circle').attr('cx', 0).attr('cy', 0).attr('r', radius).attr('fill', fill);
+// Returns data for bars within digit, passed numerical value.
+function barData(v) {
+  return [{ // top
+    x: BAR_HEIGHT / 2,
+    y: 0,
+    rot: 0,
+    on: [0, 2, 3, 5, 6, 7, 8, 9].indexOf(v) > -1
+  }, { // top left
+    x: BAR_HEIGHT - BAR_SPACE,
+    y: BAR_HEIGHT / 2 + BAR_SPACE,
+    rot: 90,
+    on: [0, 4, 5, 6, 8, 9].indexOf(v) > -1
+  }, { // top right
+    x: BAR_WIDTH + BAR_HEIGHT + BAR_SPACE,
+    y: BAR_HEIGHT / 2 + BAR_SPACE,
+    rot: 90,
+    on: [0, 1, 2, 3, 4, 7, 8, 9].indexOf(v) > -1
+  }, { // middle
+    x: BAR_HEIGHT / 2,
+    y: BAR_WIDTH + 2 * BAR_SPACE,
+    rot: 0,
+    on: [2, 3, 4, 5, 6, 8, 9].indexOf(v) > -1
+  }, { // bottom left
+    x: BAR_HEIGHT - BAR_SPACE,
+    y: BAR_WIDTH + BAR_HEIGHT / 2 + 3 * BAR_SPACE,
+    rot: 90,
+    on: [0, 2, 6, 8].indexOf(v) > -1
+  }, { // bottom right
+    x: BAR_WIDTH + BAR_HEIGHT + BAR_SPACE,
+    y: BAR_WIDTH + BAR_HEIGHT / 2 + 3 * BAR_SPACE,
+    rot: 90,
+    on: [0, 1, 3, 4, 5, 6, 7, 8, 9].indexOf(v) > -1
+  }, { // bottom
+    x: BAR_HEIGHT / 2,
+    y: 2 * BAR_WIDTH + 4 * BAR_SPACE,
+    rot: 0,
+    on: [0, 2, 3, 5, 6, 8, 9].indexOf(v) > -1
+  }];
 }
 
-/**
- * Makes line for hand.
- * @method makeHandLine
- * @param stroke {String} Stroke color for line.
- * @param strokeWidth {Number} Stroke width for line.
- * @return {d3.selection}
- */
-function makeHandLine(stroke, strokeWidth) {
-  return hands.append('line').attr('stroke-width', strokeWidth).attr('stroke', stroke).attr('x1', 0).attr('y1', 0);
-}
+// Create main element.
+var svg = (0, _d.select)('#digital-clock').append('svg').attr('width', 6 * DIGIT_WIDTH + 2 * DOT_WIDTH).attr('height', DIGIT_HEIGHT).append('g');
 
-var hands = svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')');
+// Create background.
+svg.append('rect').attr('width', 6 * DIGIT_WIDTH + 2 * DOT_WIDTH).attr('height', DIGIT_HEIGHT).attr('fill', '#000');
 
-var hPath = (0, _d.path)();
-hPath.moveTo(-0.3 * radiusHands, -2);
-hPath.lineTo(0.6 * radiusHands - 2, -2);
-hPath.lineTo(0.6 * radiusHands, 0);
-hPath.lineTo(0.6 * radiusHands - 2, 2);
-hPath.lineTo(-0.3 * radiusHands, 2);
-hPath.closePath();
+// Create clock.
+var clock = svg.append('g').attr('transform', 'translate(' + DIGIT_PADDING + ',' + DIGIT_PADDING + ')');
 
-var hours = hands.append('path').attr('fill', '#000').attr('d', hPath.toString());
+// Create digits.
+var digits = clock.selectAll('.digit').data([1, 2, 3, 4, 5, 6]).enter().append('g').attr('class', 'digit').attr('transform', function (d, i) {
+  return 'translate(' + (i * DIGIT_WIDTH + Math.floor(i / 2) * DOT_WIDTH) + ',0)';
+});
 
-var mPath = (0, _d.path)();
-mPath.moveTo(-0.3 * radiusHands, -2);
-mPath.lineTo(radiusHands - 2, -2);
-mPath.lineTo(radiusHands, 0);
-mPath.lineTo(radiusHands - 2, 2);
-mPath.lineTo(-0.3 * radiusHands, 2);
-mPath.closePath();
-var minutes = hands.append('path').attr('fill', '#000').attr('d', mPath.toString());
+// Create bars for each digit.
+digits.selectAll('.bar').data(function (d) {
+  return barData(d);
+}).enter().append('path').attr('class', 'bar').attr('d', barPath).attr('fill', function (d) {
+  return d.on ? COLOR_ON : COLOR_OFF;
+}).attr('transform', function (d) {
+  return 'translate(' + d.x + ',' + d.y + ') rotate(' + d.rot + ')';
+});
 
-var circleSeconds = makeHandCircle('#b44', radiusInner / 30);
-var sPath = (0, _d.path)();
-sPath.moveTo(-0.3 * radiusHands, -2);
-sPath.lineTo(0, -2);
-sPath.lineTo(0, -1);
-sPath.lineTo(radiusHands, -1);
-sPath.lineTo(radiusHands, 1);
-sPath.lineTo(0, 1);
-sPath.lineTo(0, 2);
-sPath.lineTo(-0.3 * radiusHands, 2);
-sPath.closePath();
-var seconds = hands.append('path').attr('d', sPath.toString()).attr('fill', '#b44');
-makeHandCircle('#000', radiusInner / 50);
+// [x, y] positions for dots.
+var dotData = [[2 * DIGIT_WIDTH, DOT_SPACE], [2 * DIGIT_WIDTH, 2 * DOT_SPACE + BAR_HEIGHT], [4 * DIGIT_WIDTH + DOT_WIDTH, DOT_SPACE], [4 * DIGIT_WIDTH + DOT_WIDTH, 2 * DOT_SPACE + BAR_HEIGHT]];
 
-/**
- * Updates hand positions.
- * @method update
- */
+// Create dots.
+clock.selectAll('.dot').data(dotData).enter().append('rect').attr('class', 'dot').attr('x', function (d) {
+  return d[0];
+}).attr('y', function (d) {
+  return d[1];
+}).attr('width', BAR_HEIGHT).attr('height', BAR_HEIGHT).attr('fill', COLOR_ON);
+
 function update() {
 
-  var d = new Date();
-  var h = d.getHours() % 12;
-  var m = d.getMinutes();
-  var s = d.getSeconds();
-  var t = (0, _d.transition)().duration(100);
+  var date = new Date();
+  var h = date.getHours() % 12;
+  var m = date.getMinutes();
+  var s = date.getSeconds();
 
-  hours.datum(360 * ((d.getHours() % 12 + m / 60) / 12) - 90).transition(t).attr('transform', function (d) {
-    return 'rotate(' + d + ')';
-  });
-
-  minutes.datum(360 * ((m + s / 60) / 60) - 90).transition(t).attr('transform', function (d) {
-    return 'rotate(' + d + ')';
-  });
-
-  seconds.datum(360 * ((s + d.getMilliseconds() / 1000) / 60) - 90).transition(t).attr('transform', function (d) {
-    return 'rotate(' + d + ')';
+  svg.selectAll('.digit').data([h === 0 ? 1 : h > 9 ? 1 : -1, h === 0 ? 2 : h > 9 ? h - 10 : h, Math.floor(m / 10), m % 10, Math.floor(s / 10), s % 10]).selectAll('.bar').data(function (d) {
+    return barData(d);
+  }).attr('fill', function (d) {
+    return d.on ? COLOR_ON : COLOR_OFF;
   });
 }
 
-window.setInterval(update, 100);
+window.setInterval(update, 20);
 
 /***/ })
 /******/ ]);

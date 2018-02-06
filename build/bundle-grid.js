@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 464);
+/******/ 	return __webpack_require__(__webpack_require__.s = 467);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -28916,7 +28916,10 @@ function nopropagation() {
 }
 
 /***/ }),
-/* 464 */
+/* 464 */,
+/* 465 */,
+/* 466 */,
+/* 467 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28924,130 +28927,39 @@ function nopropagation() {
 
 var _d = __webpack_require__(172);
 
-var size = 300;
-var margin = 20;
-var innerSize = size - 2 * margin;
-var radiusOuter = innerSize / 2;
-var radiusInner = 0.97 * radiusOuter;
-var radiusTicks = 0.95 * radiusInner;
-var radiusNumbers = 0.85 * radiusTicks;
-var radiusHands = 0.85 * radiusNumbers;
-var scale = (0, _d.scaleLinear)().domain([0, 11]).range([0, 11 / 6 * Math.PI]);
-var radians = (0, _d.scaleLinear)().domain([0, 1]).range([-0.5 * Math.PI, 1.5 * Math.PI]);
+var WIDTH = 400;
+var HEIGHT = 300;
+var MARGIN = { top: 10, right: 10, bottom: 20, left: 30 };
+var INNER_WIDTH = WIDTH - MARGIN.left - MARGIN.right;
+var INNER_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom;
 
-// Main element.
-var svg = (0, _d.select)('body').append('svg').attr('width', size).attr('height', size).append('g').attr('transform', 'translate(' + margin + ',' + margin + ')');
+var svg = (0, _d.select)('#grid').append('svg').attr('width', WIDTH).attr('height', HEIGHT).append('g').attr('transform', 'translate(' + MARGIN.left + ',' + MARGIN.top + ')');
 
-// Create the frame.
-var frame = svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')');
-frame.append('circle').attr('cx', 0).attr('cy', 0).attr('r', radiusOuter).attr('fill', '#000');
-frame.append('circle').attr('cx', 0).attr('cy', 0).attr('r', radiusInner).attr('fill', '#f1f7fd');
+var x = (0, _d.scaleLinear)().domain([0, 10]).range([0, INNER_WIDTH]);
+var y = (0, _d.scaleLinear)().domain([0, 1]).range([INNER_HEIGHT, 0]);
+var xAxis = (0, _d.axisBottom)(x).ticks(10);
+var yAxis = (0, _d.axisLeft)(y).ticks(10);
+var xAxisGrid = (0, _d.axisBottom)(x).tickSize(-INNER_HEIGHT).tickFormat('').ticks(10);
+var yAxisGrid = (0, _d.axisLeft)(y).tickSize(-INNER_WIDTH).tickFormat('').ticks(10);
 
-// Create numbers.
-svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')').selectAll('.number').data((0, _d.range)(12)).enter().append('text').attr('class', 'number').style('font-size', '18px').attr('text-anchor', 'middle').attr('dy', '0.3em').attr('x', function (d, i) {
-  return radiusNumbers * Math.cos(scale(i) - Math.PI / 2);
-}).attr('y', function (d, i) {
-  return radiusNumbers * Math.sin(scale(i) - Math.PI / 2);
-}).text(function (d) {
-  return d === 0 ? 12 : d;
+// Create grids.
+svg.append('g').attr('class', 'x axis-grid').attr('transform', 'translate(0,' + INNER_HEIGHT + ')').call(xAxisGrid);
+
+svg.append('g').attr('class', 'y axis-grid').call(yAxisGrid);
+
+// Create axes.
+svg.append('g').attr('class', 'x axis').attr('transform', 'translate(0,' + INNER_HEIGHT + ')').call(xAxis);
+
+svg.append('g').attr('class', 'y axis').call(yAxis);
+
+var data = [0.3, 0.5, 0.4, 0.7, 0.4, 0.5, 0.4, 0.8, 0.6, 0.5, 0.9];
+var line = (0, _d.line)().x(function (d, i) {
+  return x(i);
+}).y(function (d) {
+  return y(d);
 });
 
-// Create tick marks.
-svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')').selectAll('.tick').data((0, _d.range)(60)).enter().append('line').attr('class', 'tick').attr('stroke-width', function (d) {
-  return d % 5 === 0 ? 2 : 1;
-}).attr('stroke', '#000').attr('x1', function (d) {
-  return (d % 5 === 0 ? radiusTicks - 3 : radiusTicks) * Math.cos(2 * Math.PI * (d / 60));
-}).attr('y1', function (d) {
-  return (d % 5 === 0 ? radiusTicks - 3 : radiusTicks) * Math.sin(2 * Math.PI * (d / 60));
-}).attr('x2', function (d) {
-  return radiusInner * Math.cos(2 * Math.PI * (d / 60));
-}).attr('y2', function (d) {
-  return radiusInner * Math.sin(2 * Math.PI * (d / 60));
-});
-
-/**
- * Makes circle for hand.
- * @method makeHandCircle
- * @param fill {String} Fill color.
- * @param radius {Number} Circle radius.
- * @return {d3.selection}
- */
-function makeHandCircle(fill, radius) {
-  return hands.append('circle').attr('cx', 0).attr('cy', 0).attr('r', radius).attr('fill', fill);
-}
-
-/**
- * Makes line for hand.
- * @method makeHandLine
- * @param stroke {String} Stroke color for line.
- * @param strokeWidth {Number} Stroke width for line.
- * @return {d3.selection}
- */
-function makeHandLine(stroke, strokeWidth) {
-  return hands.append('line').attr('stroke-width', strokeWidth).attr('stroke', stroke).attr('x1', 0).attr('y1', 0);
-}
-
-var hands = svg.append('g').attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')');
-
-var hPath = (0, _d.path)();
-hPath.moveTo(-0.3 * radiusHands, -2);
-hPath.lineTo(0.6 * radiusHands - 2, -2);
-hPath.lineTo(0.6 * radiusHands, 0);
-hPath.lineTo(0.6 * radiusHands - 2, 2);
-hPath.lineTo(-0.3 * radiusHands, 2);
-hPath.closePath();
-
-var hours = hands.append('path').attr('fill', '#000').attr('d', hPath.toString());
-
-var mPath = (0, _d.path)();
-mPath.moveTo(-0.3 * radiusHands, -2);
-mPath.lineTo(radiusHands - 2, -2);
-mPath.lineTo(radiusHands, 0);
-mPath.lineTo(radiusHands - 2, 2);
-mPath.lineTo(-0.3 * radiusHands, 2);
-mPath.closePath();
-var minutes = hands.append('path').attr('fill', '#000').attr('d', mPath.toString());
-
-var circleSeconds = makeHandCircle('#b44', radiusInner / 30);
-var sPath = (0, _d.path)();
-sPath.moveTo(-0.3 * radiusHands, -2);
-sPath.lineTo(0, -2);
-sPath.lineTo(0, -1);
-sPath.lineTo(radiusHands, -1);
-sPath.lineTo(radiusHands, 1);
-sPath.lineTo(0, 1);
-sPath.lineTo(0, 2);
-sPath.lineTo(-0.3 * radiusHands, 2);
-sPath.closePath();
-var seconds = hands.append('path').attr('d', sPath.toString()).attr('fill', '#b44');
-makeHandCircle('#000', radiusInner / 50);
-
-/**
- * Updates hand positions.
- * @method update
- */
-function update() {
-
-  var d = new Date();
-  var h = d.getHours() % 12;
-  var m = d.getMinutes();
-  var s = d.getSeconds();
-  var t = (0, _d.transition)().duration(100);
-
-  hours.datum(360 * ((d.getHours() % 12 + m / 60) / 12) - 90).transition(t).attr('transform', function (d) {
-    return 'rotate(' + d + ')';
-  });
-
-  minutes.datum(360 * ((m + s / 60) / 60) - 90).transition(t).attr('transform', function (d) {
-    return 'rotate(' + d + ')';
-  });
-
-  seconds.datum(360 * ((s + d.getMilliseconds() / 1000) / 60) - 90).transition(t).attr('transform', function (d) {
-    return 'rotate(' + d + ')';
-  });
-}
-
-window.setInterval(update, 100);
+svg.append('path').attr('fill', 'none').attr('stroke', '#b44').attr('stroke-width', 3).attr('d', line(data));
 
 /***/ })
 /******/ ]);

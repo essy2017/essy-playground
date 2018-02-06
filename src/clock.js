@@ -1,4 +1,5 @@
 import {
+  path        as d3_path,
   range       as d3_range,
   scaleLinear as d3_scaleLinear,
   select      as d3_select,
@@ -9,10 +10,10 @@ const size          = 300;
 const margin        = 20;
 const innerSize     = size - 2 * margin;
 const radiusOuter   = innerSize / 2;
-const radiusInner   = radiusOuter - 8;
-const radiusTicks   = radiusInner - 5;
-const radiusNumbers = radiusTicks - 18;
-const radiusHands   = radiusNumbers - 20;
+const radiusInner   = 0.97 * radiusOuter;
+const radiusTicks   = 0.95 * radiusInner;
+const radiusNumbers = 0.85 * radiusTicks;
+const radiusHands   = 0.85 * radiusNumbers;
 const scale         = d3_scaleLinear().domain([0, 11]).range([0, (11/6)*Math.PI]);
 const radians       = d3_scaleLinear().domain([0, 1]).range([-0.5*Math.PI, 1.5*Math.PI]);
 
@@ -100,11 +101,47 @@ function makeHandLine (stroke, strokeWidth) {
 
 const hands = svg.append('g')
   .attr('transform', 'translate(' + radiusInner + ',' + radiusInner + ')');
-const circleHours   = makeHandCircle('#000', radiusInner / 30);
-const hours         = makeHandLine('#000', 3);
-const minutes       = makeHandLine('#000', 2);
-const circleSeconds = makeHandCircle('#b44', radiusInner / 50);
-const seconds       = makeHandLine('#b44', 2);
+
+
+const hPath = d3_path();
+hPath.moveTo(-0.3*radiusHands, -2);
+hPath.lineTo(0.6*radiusHands - 2, -2);
+hPath.lineTo(0.6*radiusHands, 0);
+hPath.lineTo(0.6*radiusHands - 2, 2);
+hPath.lineTo(-0.3*radiusHands, 2);
+hPath.closePath();
+
+const hours = hands.append('path')
+  .attr('fill', '#000')
+  .attr('d', hPath.toString());
+
+const mPath = d3_path();
+mPath.moveTo(-0.3*radiusHands, -2);
+mPath.lineTo(radiusHands - 2, -2);
+mPath.lineTo(radiusHands, 0);
+mPath.lineTo(radiusHands - 2, 2);
+mPath.lineTo(-0.3*radiusHands, 2);
+mPath.closePath();
+const minutes = hands.append('path')
+  .attr('fill', '#000')
+  .attr('d', mPath.toString());
+
+const circleSeconds = makeHandCircle('#b44', radiusInner / 30);
+const sPath = d3_path();
+sPath.moveTo(-0.3*radiusHands, -2);
+sPath.lineTo(0, -2);
+sPath.lineTo(0, -1);
+sPath.lineTo(radiusHands, -1);
+sPath.lineTo(radiusHands, 1);
+sPath.lineTo(0, 1);
+sPath.lineTo(0, 2);
+sPath.lineTo(-0.3*radiusHands, 2);
+sPath.closePath();
+const seconds = hands.append('path')
+  .attr('d', sPath.toString())
+  .attr('fill', '#b44');
+makeHandCircle('#000', radiusInner / 50);
+
 
 /**
  * Updates hand positions.
@@ -118,22 +155,18 @@ function update () {
   const s = d.getSeconds();
   const t = d3_transition().duration(100);
 
-  hours.datum(radians((d.getHours() % 12 + (m / 60)) / 12 ))
+  hours.datum( 360 * ((d.getHours() % 12 + (m / 60)) / 12) - 90)
     .transition(t)
-    .attr('x2', d => (radiusHands / 2)*Math.cos(d))
-    .attr('y2', d => (radiusHands / 2)*Math.sin(d));
+    .attr('transform', d => 'rotate(' + d + ')');
 
-  minutes.datum(radians((m + s / 60) / 60))
+  minutes.datum( 360 * ((m + s / 60) / 60) - 90)
     .transition(t)
-    .attr('x2', d => radiusHands*Math.cos(d))
-    .attr('y2', d => radiusHands*Math.sin(d));
+    .attr('transform', d => 'rotate(' + d + ')');
 
-  seconds.datum(radians((s + d.getMilliseconds() / 1000) / 60))
+  seconds.datum( 360 * ((s + d.getMilliseconds() / 1000) / 60) - 90)
     .transition(t)
-    .attr('x2', d => radiusHands*Math.cos(d))
-    .attr('y2', d => radiusHands*Math.sin(d));
+    .attr('transform', d => 'rotate(' + d + ')');
 
-  window.setTimeout(update, 100);
 }
 
-update();
+window.setInterval(update, 100);

@@ -13,15 +13,29 @@
     }
     svg {
       display:block;
-      height:300px;
       margin:100px auto 0 auto;
-      width:300px;
+    }
+    .axis line {
+      stroke:#aaa;
+    }
+    .axis path {
+      stroke:#aaa;
+    }
+    .axis text {
+      fill:#777;
+    }
+    .axis-grid path {
+
+    }
+    .axis-grid line {
+      stroke:#def;
     }
   </style>
 </head>
 
 <body>
-  <script src="../build/bundle-clock.js"></script>
+  <div id="grid"></div>
+  <script src="../build/bundle-grid.js"></script>
 </body>
 
 </html>

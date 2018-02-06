@@ -10,8 +10,11 @@ module.exports = [
     },
 
     entry: {
-      clock      : path.join(__dirname, '/src/clock.js'),
-      snowflakes : path.join(__dirname, '/src/snowflakes.js')
+      'clock'                 : path.join(__dirname, '/src/clock.js'),
+      'digital-clock'         : path.join(__dirname, '/src/digital-clock.js'),
+      'digital-clock-details' : path.join(__dirname, '/src/digital-clock-details.js'),
+      'grid'                  : path.join(__dirname, '/src/grid.js'),
+      'snowflakes'            : path.join(__dirname, '/src/snowflakes.js')
     },
     output: {
       path: path.join(__dirname, '/build/'),
