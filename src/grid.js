@@ -16,7 +16,7 @@ const svg = d3_select('#grid').append('svg')
   .attr('width', WIDTH)
   .attr('height', HEIGHT)
   .append('g')
-    .attr('transform', 'translate(' + MARGIN.left + ',' + MARGIN.top + ')');
+    .attr('transform', `translate(${MARGIN.left},${MARGIN.top})`);
 
 
 const x         = d3_scaleLinear().domain([0, 10]).range([0, INNER_WIDTH]);
@@ -30,7 +30,7 @@ const yAxisGrid = d3_axisLeft(y).tickSize(-INNER_WIDTH).tickFormat('').ticks(10)
 // Create grids.
 svg.append('g')
   .attr('class', 'x axis-grid')
-  .attr('transform', 'translate(0,' + INNER_HEIGHT + ')')
+  .attr('transform', `translate(0, ${INNER_HEIGHT})`)
   .call(xAxisGrid);
 
 svg.append('g')
@@ -40,7 +40,7 @@ svg.append('g')
 // Create axes.
 svg.append('g')
   .attr('class', 'x axis')
-  .attr('transform', 'translate(0,' + INNER_HEIGHT + ')')
+  .attr('transform', `translate(0, ${INNER_HEIGHT})`)
   .call(xAxis);
 
 svg.append('g')
