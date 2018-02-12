@@ -12,12 +12,14 @@ module.exports = [
     entry: {
       'clock'                 : path.join(__dirname, '/src/clock.js'),
       'color-wheel'           : path.join(__dirname, '/src/color-wheel.js'),
+      'colors'                : path.join(__dirname, '/src/colors.js'),
       'digital-clock'         : path.join(__dirname, '/src/digital-clock.js'),
       'digital-clock-details' : path.join(__dirname, '/src/digital-clock-details.js'),
       'grid'                  : path.join(__dirname, '/src/grid.js'),
       'pixelate'              : path.join(__dirname, '/src/pixelate.js'),
       'scales'                : path.join(__dirname, '/src/scales.js'),
-      'snowflakes'            : path.join(__dirname, '/src/snowflakes.js')
+      'snowflakes'            : path.join(__dirname, '/src/snowflakes.js'),
+      'sparklines'            : path.join(__dirname, '/src/sparklines.js')
     },
     output: {
       path: path.join(__dirname, '/build/'),
