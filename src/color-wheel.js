@@ -30,7 +30,7 @@ for (let k = 0; k < BANDS; k++) {
     .startAngle(0)
     .endAngle((2*Math.PI) / COUNT);
 
-  const paths = svg.append('g')
+  svg.append('g')
     .attr('class', 'band')
     .selectAll('path').data(COLORS)
     .enter()
@@ -51,13 +51,11 @@ for (let k = 0; k < BANDS; k++) {
 d3_select('#buttons').append('button')
   .text('Scramble')
   .on('click', () => {
-
     svg.selectAll('.band')
       .transition().duration(1000)
       .attr('transform', () =>
         'rotate(' + (360/COUNT)*Math.floor(COUNT * Math.random()) + ')'
       );
-
   });
 
 d3_select('#buttons').append('button')

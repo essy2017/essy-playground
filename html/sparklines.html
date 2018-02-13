@@ -1,0 +1,41 @@
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <style type="text/css">
+    html, body {
+      font-family:helvetica,arial,sans-serif;
+      font-size:16px;
+      height:100%;
+      margin:0;
+      padding:0;
+      width:100%;
+    }
+    p {
+      max-width:800px;
+      margin:auto;
+      margin-top:100px;
+    }
+    .sparklines {
+      display:inline-block;
+      vertical-align:middle;
+    }
+    svg rect,
+    svg line {
+      shape-rendering:crispEdges;
+    }
+  </style>
+</head>
+
+<body>
+  <p>Here is some text to wrap around the sparkline <span id="sparklines1" class="sparklines"></span> that should have just appeared.</p>
+  <p>Here is more text to show <span id="sparklines2" class="sparklines"></span> another sparkline chart.</p>
+  <div>
+    <span id="sparklines3" class="sparklines"></span>
+    <span id="sparklines4" class="sparklines"></span>
+  </div>
+
+  <script src="../build/bundle-sparklines.js"></script>
+</body>
+
+</html>
