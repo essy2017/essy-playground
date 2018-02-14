@@ -2,8 +2,11 @@ import {
   arc as d3_arc,
   interpolateRainbow as d3_interpolateRainbow,
   range as d3_range,
-  select as d3_select
+  select as d3_select,
+  shuffle as d3_shuffle
 } from 'd3';
+
+
 
 
 const SIZE       = 400;
@@ -38,7 +41,6 @@ for (let k = 0; k < BANDS; k++) {
     .selectAll('path').data(data)
     .enter()
     .append('path')
-      //.attr('fill', d => d3_interpolateRainbow(Math.random()))
       .attr('fill', (d, i) => i%2 === 0 ? '#000' : d3_interpolateRainbow(Math.random()))
       .attr('stroke', '#000')
       .attr('stroke-width', 2)

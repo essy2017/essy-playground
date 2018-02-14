@@ -16,6 +16,7 @@ module.exports = [
       'digital-clock'         : path.join(__dirname, '/src/digital-clock.js'),
       'digital-clock-details' : path.join(__dirname, '/src/digital-clock-details.js'),
       'grid'                  : path.join(__dirname, '/src/grid.js'),
+      'letters'               : path.join(__dirname, '/src/letters.js'),
       'pixelate'              : path.join(__dirname, '/src/pixelate.js'),
       'scales'                : path.join(__dirname, '/src/scales.js'),
       'snowflakes'            : path.join(__dirname, '/src/snowflakes.js'),
