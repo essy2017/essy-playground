@@ -1,6 +1,6 @@
 import Tone from 'tone';
 
-const F0       = 110;
+const F0       = 220;
 const OCTAVES  = 5;
 const DURATION = 10 * OCTAVES;
 const INTERVAL = DURATION / 48;
@@ -45,6 +45,12 @@ function doLoop (time) {
 }
 
 
+/*******************************************************************************
+ *
+ * A group of oscillators composing a Shepard tone.
+ * @class OscillatorGroup
+ *
+ ******************************************************************************/
 class OscillatorGroup {
 
  /**
@@ -52,7 +58,9 @@ class OscillatorGroup {
   * @method constructor
   * @param config {Object} With properties:
   *   baseFreq {Number} Base frequency for lowest component.
-  *   duration {Number} Duration of loop in seconds.
+  *   duration {Number} Duration of full loop in seconds.
+  *   gain {Number} Gain for group.
+  *   interval {Number} Interval for loop.
   *   octaves {Number} Number of octaves / components in tone.
   *   type {String} Oscillator type.
   */
@@ -78,14 +86,20 @@ class OscillatorGroup {
   }
 
  /**
+  * Setter for gain.
+  * @method gain
+  * @param gain {Number} Between 0 and 1.
+  */
+  set gain (gain) {
+    this.gainNode.gain.value = gain;
+  }
+
+ /**
   * Chains oscillators to provided arguments.
   * @method chain
   * @param args {Object[]} Outputs.
   */
   chain () {
-    /*const args = Array.from(arguments);
-    args.shift(this.gainNode);
-    this.oscs.forEach( d => d.chain.apply(d, args));*/
     this.oscs.forEach( d => d.connect(this.gainNode) );
     this.gainNode.chain.apply(this.gainNode, arguments);
   }
@@ -151,6 +165,12 @@ class OscillatorGroup {
 }
 
 
+/*******************************************************************************
+ *
+ * Wrapper for an oscillator.
+ * @class Oscillator
+ *
+ ******************************************************************************/
 class Oscillator {
 
  /**
@@ -237,3 +257,8 @@ function setup () {
 
 setup();
 btnEl.addEventListener('click', onClickBtn, false);
+
+const btnTestEl = document.getElementById('test');
+btnTestEl.addEventListener('click', function () {
+  oscGroup.gain = 0.2;
+}, false);
